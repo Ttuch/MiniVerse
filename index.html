@@ -3,51 +3,152 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>PhyCom Simple Publisher</title>
+  <title>MiniVerse Console</title>
   <style>
-    body { font-family: sans-serif; display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; margin:0; background:#f5f5f5; }
-    .container { background:white; padding:20px; border-radius:10px; box-shadow:0 4px 12px rgba(0,0,0,0.1); width:300px; }
-    input { width:100%; padding:8px; margin-bottom:10px; border-radius:5px; border:1px solid #ccc; box-sizing:border-box; }
-    button { width:100%; padding:10px; border:none; border-radius:5px; background:#2563eb; color:white; font-weight:600; cursor:pointer; }
-    #status { margin-top:10px; font-size:14px; text-align:center; }
+    body {
+      background: #000;
+      color: #fff;
+      font-family: 'Courier New', monospace;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    h1 {
+      color: #00ff66;
+      font-size: 3rem;
+      text-shadow: 2px 2px #003300;
+      margin-top: 30px;
+      margin-bottom: 0;
+    }
+
+    .desc {
+      font-size: 14px;
+      color: #ccc;
+      margin: 10px 0 20px;
+      max-width: 700px;
+      text-align: center;
+      line-height: 1.5;
+    }
+
+    .console {
+      width: 90%;
+      max-width: 900px;
+      background: #2b2b2b;
+      border-radius: 10px;
+      padding: 15px;
+      height: 400px;
+      overflow-y: auto;
+      box-sizing: border-box;
+      font-size: 14px;
+      line-height: 1.6;
+      box-shadow: 0 0 10px #00ff66;
+    }
+
+    .input-box {
+      width: 90%;
+      max-width: 900px;
+      background: #222;
+      border-radius: 25px;
+      padding: 10px 20px;
+      margin-top: 15px;
+      display: flex;
+      align-items: center;
+      box-shadow: 0 0 8px #00ff66;
+    }
+
+    .prompt {
+      color: #00ff66;
+      margin-right: 10px;
+      font-weight: bold;
+    }
+
+    input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: white;
+      font-family: 'Courier New', monospace;
+      font-size: 16px;
+      outline: none;
+    }
+
+    .footer {
+      color: #888;
+      font-size: 12px;
+      margin-top: 20px;
+      text-align: center;
+    }
   </style>
 </head>
 <body>
 
-<div class="container">
-  <input type="text" id="message" placeholder="พิมพ์ข้อความที่นี่...">
-  <button id="sendBtn">ส่งข้อความ</button>
-  <div id="status">สถานะ: กำลังเชื่อมต่อ...</div>
-</div>
+  <h1>MiniVerse</h1>
+  <div class="desc">
+    Project นี้ทำมาเพื่อแก้ไขปัญหาสำหรับคนที่อยากเรียนรู้ตัวของ sensor ต่าง ๆ<br>
+    และตัวของ arduino ได้เข้าถึงง่ายยิ่งขึ้น โดยมีระบบแก้ไขปัญหาโดยไม่ต้อง Upload โค้ดทุกครั้ง
+  </div>
 
-<script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
-<script>
-  const client = mqtt.connect('wss://mqtt-dashboard.com:8884/mqtt', {
-    clientId: 'clientId-ZwL31a1OkJ'
-  });
+  <div class="console" id="console">
+    >> ระบบพร้อมทำงาน<br>
+  </div>
 
-  const topic = 'web/phycom/text';
-  const statusEl = document.getElementById('status');
-  const sendBtn = document.getElementById('sendBtn');
-  const messageEl = document.getElementById('message');
+  <div class="input-box">
+    <span class="prompt">>></span>
+    <input type="text" id="message" placeholder="พิมพ์คำสั่งที่นี่แล้วกด Enter...">
+  </div>
 
-  client.on('connect', () => {
-    statusEl.textContent = 'สถานะ: เชื่อมต่อสำเร็จ ✓';
-  });
+  <div class="footer">
+    source code : github.project.phycom.OneDayMiracle’s
+  </div>
 
-  client.on('error', (err) => {
-    statusEl.textContent = 'สถานะ: มีข้อผิดพลาด';
-    console.error(err);
-  });
+  <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+  <script>
+    const client = mqtt.connect('wss://mqtt-dashboard.com:8884/mqtt', {
+      clientId: 'clientId-' + Math.random().toString(16).substr(2, 8)
+    });
 
-  sendBtn.addEventListener('click', () => {
-    const msg = messageEl.value.trim();
-    if (!msg) return;
-    client.publish(topic, msg);
-    messageEl.value = '';
-    statusEl.textContent = 'ส่งข้อความแล้ว: ' + msg;
-  });
-</script>
+    const topic = 'web/phycom/text';
+    const consoleEl = document.getElementById('console');
+    const inputEl = document.getElementById('message');
 
+    function logToConsole(msg) {
+      const newLine = document.createElement('div');
+      newLine.textContent = '>> ' + msg;
+      consoleEl.appendChild(newLine);
+      consoleEl.scrollTop = consoleEl.scrollHeight; // auto scroll down
+    }
+
+    client.on('connect', () => {
+      logToConsole('เชื่อมต่อกับ MQTT สำเร็จ ✓');
+    });
+
+    client.on('error', (err) => {
+      logToConsole('เกิดข้อผิดพลาดในการเชื่อมต่อ MQTT');
+      console.error(err);
+    });
+
+    client.subscribe(topic);
+
+    client.on('message', (t, message) => {
+      if (t === topic) {
+        logToConsole('ข้อความจากระบบ: ' + message.toString());
+      }
+    });
+
+    inputEl.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        const msg = inputEl.value.trim();
+        if (!msg) return;
+        client.publish(topic, msg);
+        logToConsole(msg);
+        inputEl.value = '';
+      }
+    });
+  </script>
 </body>
 </html>
